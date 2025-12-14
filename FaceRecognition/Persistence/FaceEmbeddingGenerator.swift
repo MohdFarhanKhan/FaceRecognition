@@ -12,12 +12,11 @@ import CoreML
 import CoreImage
 
 class FaceEmbeddingGenerator {
-    let remover = FaceGlareRemover()
+    
     
     func generateEmbedding(from image: CGImage,  completion: @escaping([Float32]?) -> Void) {
 
-       // remover.removeFaceGlare(from: image) { cgImage in
-          //  if let img = cgImage{
+     
                
                  let request = VNGenerateImageFeaturePrintRequest()
                 let handler = VNImageRequestHandler(cgImage: image, orientation: .up, options: [:])
@@ -27,12 +26,7 @@ class FaceEmbeddingGenerator {
                      return  }
                  let data = obs.data
                  completion(data.withUnsafeBytes { Array($0.bindMemory(to: Float32.self).prefix(512)) })
-               // return
-//            }else{
-//                completion(nil)
-//                return
-//            }
-       // }
+           
       
         
     }

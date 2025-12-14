@@ -38,14 +38,10 @@ class FaceGlareRemover {
     return nil
   }
     func removeFaceGlare(from image: CGImage, completion: @escaping (CGImage?) -> Void) {
-       // detectFace(in: image) { faceRect in
-//            guard let faceRect = faceRect else {
-//                completion(image)
-//                return
-//            }
+      
         let output = self.process(image: image, faceRect: CGRect(x: 0, y: 0, width: image.width, height: image.height))
             completion(output)
-       // }
+     
     }
 
     // MARK: - Face Detection

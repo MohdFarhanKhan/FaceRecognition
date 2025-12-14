@@ -81,7 +81,7 @@ class FaceViewModel: NSObject, ObservableObject, NSFetchedResultsControllerDeleg
         
     }
     
-    func checkBed(bedding: [Float32])-> String{
+    func checkEmbeding(bedding: [Float32])-> String{
         
         for f in faces{
             print(f.name)
@@ -95,22 +95,19 @@ class FaceViewModel: NSObject, ObservableObject, NSFetchedResultsControllerDeleg
     }
     
     func checkFaces(faceArray:[[Float32]])-> String{
-       var correct = 0
-        var fail = 0
+      
         var name = ""
         for bedding in faceArray{
         
-            let personName = checkBed(bedding: bedding)
+            let personName = checkEmbeding(bedding: bedding)
             if personName != ""{
                 name = personName
-                correct += 1
+               
                 break
             }
-            else{
-                fail += 1
-            }
+           
         }
-        print("Correct No:\(correct), FailNo: \(fail)")
+      
         return name
     }
    

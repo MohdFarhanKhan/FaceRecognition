@@ -53,24 +53,6 @@ final class FaceCaptureViewModel: NSObject, ObservableObject, CameraDelegate {
         cameraViewModel.configure()
         
     }
-    func getEmbedding(image: CGImage) {
-        faceViewModel.getEmbedings(image: image) { array in
-            if let floatArray = array{
-                self.embedingArray.append(floatArray)
-                print("Saved embeding:\(self.embedingArray.count)")
-                
-            }
-        }
-    }
-    func getVariedImages(cgImage: CGImage){
-        if let imgs = self.faceViewModel.faceEmbedGenerator.remover.giveBrightVariedImages(image: cgImage){
-            for img in imgs{
-               self.getEmbedding(image: img)
-            }
-        }
-    }
-    
-
    
 
     // MARK: Save image
