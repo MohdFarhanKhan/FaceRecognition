@@ -40,11 +40,11 @@ class FaceEmbeddingGenerator {
          let d = sqrtf(na) * sqrtf(nb)
          return d > 0 ? dot / d : 0
     }
-    func isSameImages(_ a: [Float32], _ b: [Float32]) -> Bool{
+    func isSameImages(_ a: [Float32], _ b: [Float32]) -> (Bool, Float){
         let similarity = cosineSimilarity(a, b)
        
         print("Similarity->\(similarity)")
-        return similarity >= 0.96 ? true : false
+        return similarity >= 0.92 ? (true, similarity) : (false, similarity)
     }
   
     

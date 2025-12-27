@@ -2,7 +2,7 @@
 //  Persons+CoreDataProperties.swift
 //  FaceRecognition
 //
-//  Created by Mohd Khan on 13/12/25.
+//  Created by Mohd Khan on 25/12/25.
 //
 //
 
@@ -17,7 +17,10 @@ extension Persons {
     }
 
     @NSManaged public var embeding: [[Float32]]?
+    @NSManaged public var id: UUID?
+    @NSManaged public var imageUrls: [Int]?
     @NSManaged public var name: String?
+    @NSManaged public var averageEmbeding: [Float32]?
 
 }
 

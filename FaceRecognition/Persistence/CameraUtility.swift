@@ -70,24 +70,16 @@ class CameraUtility{
                 return
             }
             
-            // 1️⃣ Get tilt angle
+            //  Get tilt angle
             let angle = self.angleBetweenEyes(face, in: ciImage)
 
-            // 2️⃣ Rotate full image
+            //  Rotate full image
             let aligned = self.rotateImage(ciImage, angle: angle)
 
-            // 3️⃣ Crop aligned face
+            // Crop aligned face
             let cropped = self.cropFace(aligned, face: face)
             completion(cropped)
-            /*
-            // 4️⃣ Convert to UIImage
-            let context = CIContext()
-            if let cg = context.createCGImage(cropped, from: cropped.extent) {
-                completion(UIImage(cgImage: cg))
-            } else {
-                completion(nil)
-            }
-             */
+           
         }
     }
     func detectFaceAndBrightness(ciImage: CIImage, completion: @escaping (CGRect?, CGFloat) -> Void) {

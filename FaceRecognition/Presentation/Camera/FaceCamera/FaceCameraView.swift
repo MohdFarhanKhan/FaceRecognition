@@ -1,19 +1,17 @@
 //
-//  ContentView.swift
+//  FaceCameraView.swift
 //  FaceRecognition
 //
-//  Created by Mohd Khan on 19/11/25.
+//  Created by Mohd Khan on 24/12/25.
 //
-import SwiftUI
-import AVFoundation
-import UIKit
-import Vision
 
-struct ContentView: View {
+import SwiftUI
+
+
+struct FaceCameraView: View {
     
    
-    @State private var cameraPermission: AVAuthorizationStatus = .notDetermined
-    @State private var isCapturing = false
+      @State private var isCapturing = false
   
     @State private var moveToFaceCapture = false
     @StateObject private var vm = FaceCameraViewModel()
@@ -26,29 +24,18 @@ struct ContentView: View {
                 VStack {
 
                     ZStack(alignment: .topTrailing) {
-                        CameraPreview(session: vm.cameraViewModel.session)
+                        CameraPreview(session: vm.cameraViewModel.session, previewView: vm.cameraViewModel.previewView)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .ignoresSafeArea()
                             .cornerRadius(12)
+                            
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                             )
                             .padding()
-                            .onLongPressGesture {
-                                
-                            }
-                        /*
-                        let faceFrame = vm.convertBoundingBox(
-                            vm.faceBoundingBox,
-                            to: geo.size
-                        )
-                        FaceGuideOverlay()
-                        // Debug — show detected face rectangle
-                                       Rectangle()
-                                           .stroke(Color.red, lineWidth: 2)
-                                           .frame(width: faceFrame.width, height: faceFrame.height)
-                                           .position(x: faceFrame.midX, y: faceFrame.midY)
-*/
+                           
+                        LightOverlayView(mode: vm.selectedLight)
                         VStack(alignment: .trailing, spacing: 8) {
                             
                             
@@ -76,6 +63,12 @@ struct ContentView: View {
                     
                 }
             }
+            .onChange(of: vm.isMatch) { old, new in
+
+                           if new == true {
+                               path.append("matchView")
+                           }
+                       }
             .onChange(of: moveToFaceCapture) { old, new in
 
                            if new == true {
@@ -120,6 +113,10 @@ struct ContentView: View {
                    PersonListView()
                     //PersonsList()
                 }
+                else  if value == "matchView" {
+                    MatchView()
+                 }
+                //matchView
                 
                         }
            // .navigationTitle("Camera View")
@@ -127,34 +124,22 @@ struct ContentView: View {
                 vm.configure()
                
                 moveToFaceCapture = false
-                if vm.faceViewModel.faces.count <= 0{
+                if FaceViewModel.shared.faces.count <= 0{
                     moveToFaceCapture = true
                 }
             }
             .onDisappear {
+                vm.cameraViewModel.stopCapturing()
                 vm.cameraViewModel.stopSession()
                 vm.matchText = ""
-               
+                vm.isMatch = false
             }
         }
     }
 }
 
-struct FaceGuideOverlay: View {
-    var body: some View {
-        GeometryReader { geo in
-            let size = min(geo.size.width * 0.75, geo.size.height * 0.5)
-            Circle()
-                .stroke(lineWidth: 4)
-                .foregroundColor(.white.opacity(0.9))
-                .frame(width: size, height: size)
-                .position(x: geo.size.width/2, y: geo.size.height/2)
-                .shadow(radius: 10)
-        }
-        .allowsHitTesting(false)
-    }
-}
-// MARK: - Preview
+
+
 #Preview {
-    ContentView()
+    FaceCameraView()
 }

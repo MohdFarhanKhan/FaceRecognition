@@ -16,7 +16,8 @@ struct AnimatedSplashView: View {
             Color.init(red: 78.0/255.0, green: 45.0/255.0, blue: 54.0/255.0)
                             .ignoresSafeArea()
             if showMain {
-                ContentView()
+                FaceCameraView()
+                    .edgesIgnoringSafeArea(.all)
             } else {
                 Image("SplashScreen")
                     .resizable()

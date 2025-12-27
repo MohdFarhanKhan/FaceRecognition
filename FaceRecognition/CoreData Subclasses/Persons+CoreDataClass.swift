@@ -2,7 +2,7 @@
 //  Persons+CoreDataClass.swift
 //  FaceRecognition
 //
-//  Created by Mohd Khan on 13/12/25.
+//  Created by Mohd Khan on 25/12/25.
 //
 //
 

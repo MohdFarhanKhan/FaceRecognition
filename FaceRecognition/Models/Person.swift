@@ -9,15 +9,22 @@ import Foundation
 import UIKit
 
 struct Person: Identifiable, Equatable{
-    var id = UUID() // Required for Identifiable
+    let id: UUID
     
     let name: String
+    let imageURLs: [Int]
     let embedings: [[Float32]]
+    let averageEmbedings: [Float32]
+   
 }
 
-struct Photo: Identifiable, Equatable{
-    var id = UUID() // Required for Identifiable
+
+
+struct MatchModel: Identifiable, Equatable{
+    let id = UUID() // Required for Identifiable
+    let from:UIImage
+    let to: URL?
     let name: String
-    let faces: [UIImage]
+    let matchPercent: Float
+    let isMatched: Bool
 }
-

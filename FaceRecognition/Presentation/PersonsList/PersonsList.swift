@@ -36,14 +36,14 @@ struct PersonsList: View {
                                    
                                }
                     .onAppear {
-                        faceViewModel.loadFacesCollection()
+                      
                     }
                
     }
     // Function to delete the item when the button is tapped
     private func deleteItemByTap(item: Person) {
         deleteProcess.toggle()
-        faceViewModel.deletePerson(personName: item.name)
+        faceViewModel.deletePerson(personId: item.id)
        }
 }
 

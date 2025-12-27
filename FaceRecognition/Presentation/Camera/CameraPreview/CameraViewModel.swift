@@ -16,6 +16,7 @@ import CoreImage.CIFilterBuiltins
 protocol CameraDelegate: AnyObject {
     func saveFaceImage(_ cgImage: CGImage)
     func isCameraRunning(_ isRunning: Bool)
+   
 }
 
 final class CameraViewModel: NSObject{
@@ -28,7 +29,8 @@ final class CameraViewModel: NSObject{
     private var videoOutput: AVCaptureVideoDataOutput?
     private var videoConnection: AVCaptureConnection?
     private var ciContext = CIContext()
-
+    let previewView = PreviewView()
+    private let faceDetectionService = FaceDetectionService()
     // Vision
     private let faceDetectionRequest = VNDetectFaceRectanglesRequest()
     private var processingFrame = false
@@ -44,13 +46,19 @@ final class CameraViewModel: NSObject{
     var savedCount = 0
     let remover = FaceGlareRemover()
     let cameraUtility = CameraUtility()
+    var isConfigure: Bool = false
     override init() {
         super.init()
     }
   
     func configure() {
-        sessionQueue.async {
-            self.checkPermissionAndConfigureSession()
+        if !isConfigure{
+            sessionQueue.async {
+                self.checkPermissionAndConfigureSession()
+            }
+        }
+        else{
+            self.startSession()
         }
     }
 
@@ -110,7 +118,7 @@ final class CameraViewModel: NSObject{
         }
 
         session.commitConfiguration()
-
+        isConfigure = true
         DispatchQueue.main.async {
             self.startSession()
         }
@@ -138,6 +146,7 @@ final class CameraViewModel: NSObject{
         }
         DispatchQueue.main.async {
             self.statusText = "Ready"
+            self.previewView.clearFaceLayers()
         }
     }
 
@@ -151,6 +160,7 @@ final class CameraViewModel: NSObject{
             self.statusText = "Stopped"
             self.isRunning = false
             self.delegate?.isCameraRunning(self.isRunning)
+            self.previewView.clearFaceLayers()
         }
     }
 
@@ -162,6 +172,7 @@ final class CameraViewModel: NSObject{
         DispatchQueue.main.async {
             self.isRunning = true
             self.delegate?.isCameraRunning(self.isRunning)
+            self.previewView.clearFaceLayers()
         }
         statusText = "Capturing..."
     }
@@ -172,6 +183,7 @@ final class CameraViewModel: NSObject{
             self.isRunning = false
             self.statusText = "Stopped"
             self.delegate?.isCameraRunning(self.isRunning)
+            self.previewView.clearFaceLayers()
         }
     }
 
@@ -186,12 +198,23 @@ extension CameraViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput,
                        didOutput sampleBuffer: CMSampleBuffer,
                        from connection: AVCaptureConnection) {
+        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        var facesObs:  [VNFaceObservation]?
+        self.faceDetectionService.detectFaces(pixelBuffer: pixelBuffer, orientation: .leftMirrored) { obs in
+            facesObs = obs
+        }
+        if facesObs?.count == 0{
+            DispatchQueue.main.async {
+                self.previewView.clearFaceLayers()
+                        }
+        }
         guard isRunning else { return }
         frameCounter += 1
         if frameCounter % frameProcessingStride != 0 { return }
 
         if processingFrame { return }
         processingFrame = true
+       
         cameraUtility.extractAlignedFace(from: sampleBuffer) { img in
             if let ciImage = img{
               
@@ -220,17 +243,34 @@ extension CameraViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
                                     break
                                 }
                                 
-                              
+                               
                                 if let faceCrop = self.cameraUtility.cropFace(from: cgImage, using: face) {
-                                   
-                                    self.remover.removeFaceGlare(from: faceCrop) { face in
-                                        if let faceImage = face{
-                                          
-                                            self.delegate?.saveFaceImage(faceImage)
+                                    if let facesObserve = facesObs{
+                                        DispatchQueue.main.async {
+                                            self.previewView.updateFaces(facesObserve)
+                                            if self.previewView.isAlign{
+                                                self.delegate?.saveFaceImage(faceCrop)
+                                            }
+                                                    }
+                                    }
+                                    /*
+                                    self.remover.removeFaceGlare(from: faceCrop) { faceImg in
+                                        if let faceImage = faceImg{
+                                            if let facesObserve = facesObs{
+                                                DispatchQueue.main.async {
+                                                    self.previewView.updateFaces(facesObserve)
+                                                    if self.previewView.isAlign{
+                                                        self.delegate?.saveFaceImage(faceImage)
+                                                    }
+                                                            }
+                                            }
+                                           
+                                           
+                                            
                                            
                                         }
                                     }
-                                    
+                                    */
                                     
                                 }
                             }

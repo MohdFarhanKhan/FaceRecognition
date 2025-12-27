@@ -8,7 +8,7 @@
 import UIKit
 import Vision
 import CoreImage
-
+import AVFoundation
 class FaceGlareRemover {
 
     let context = CIContext()
@@ -117,5 +117,27 @@ class FaceGlareRemover {
         }
 
         return nil
+    }
+}
+final class FaceDetectionService {
+
+    private let request = VNDetectFaceRectanglesRequest()
+
+    func detectFaces(
+        pixelBuffer: CVPixelBuffer,
+        orientation: CGImagePropertyOrientation,
+        completion: @escaping ([VNFaceObservation]) -> Void
+    ) {
+        let handler = VNImageRequestHandler(
+            cvPixelBuffer: pixelBuffer,
+            orientation: orientation
+        )
+
+        do {
+            try handler.perform([request])
+            completion(request.results as? [VNFaceObservation] ?? [])
+        } catch {
+            completion([])
+        }
     }
 }
