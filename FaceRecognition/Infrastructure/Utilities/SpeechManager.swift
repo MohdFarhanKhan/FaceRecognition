@@ -87,10 +87,10 @@ class SpeechManager: ObservableObject {
                 greet = " Please mention to add more faces to recognise you correctly "
             }
             else  if base == "hi"{
-                greet = "कृपया यह बताएं कि आपको सही ढंग से पहचानने के लिए और भी चेहरे जोड़े जाएं"
+                greet = "कृपया आपको सही ढंग से पहचानने के लिए अधिक चेहरे जोड़ने पर विचार करें"
             }
             else{
-                greet = "آپ کو صحیح طریقے سے پہچاننے کے لیے براہ کرم مزید چہرے شامل کرنے کا ذکر کریں"
+                greet = "براہ کرم آپ کو درست طریقے سے پہچاننے کے لیے مزید چہرے شامل کرنے پر غور کریں"
             }
         }
        let text = "\(greet), \(text)"
@@ -102,18 +102,20 @@ class SpeechManager: ObservableObject {
         let base = detectBaseLanguageCode(from: text)
         let code = speechMap[base]?.first ?? ( base == "ur" ? "ar-SA" : "en-US")
         var greet = ""
+        greet = " No face found. Please rejister your face to recognize you "
         if !self.isGuidance{
+           
             if base == "en"{
-                greet = " Please mention to add more faces to recognise you correctly "
+                greet = " No face found. Please rejister your face to recognize you "
             }
             else  if base == "hi"{
-                greet = "कृपया यह बताएं कि आपको सही ढंग से पहचानने के लिए और भी चेहरे जोड़े जाएं"
+                greet = "कोई चेहरा नहीं मिला। कृपया आपको पहचानने के लिए अपना चेहरा रजिस्टर करें।"
             }
             else{
-                greet = "آپ کو صحیح طریقے سے پہچاننے کے لیے براہ کرم مزید چہرے شامل کرنے کا ذکر کریں"
+                greet = "چہرہ نہیں ملا۔ براہ مہربانی اپنا چہرہ رجسٹر کریں تاکہ آپ کو پہچانا جا سکے"
             }
         }
-        let text = "\(greet), \(text)"
+        let text = "\(greet)"
         print("Language:\(base),  Code: \(code)")
         return text
     }

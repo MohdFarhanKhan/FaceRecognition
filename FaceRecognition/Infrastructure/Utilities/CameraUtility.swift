@@ -10,6 +10,24 @@ import UIKit
 
 
 class CameraUtility{
+    private let request = VNDetectFaceRectanglesRequest()
+    func detectFaces(
+        pixelBuffer: CVPixelBuffer,
+        orientation: CGImagePropertyOrientation,
+        completion: @escaping ([VNFaceObservation]) -> Void
+    ) {
+        let handler = VNImageRequestHandler(
+            cvPixelBuffer: pixelBuffer,
+            orientation: orientation
+        )
+
+        do {
+            try handler.perform([request])
+            completion(request.results as? [VNFaceObservation] ?? [])
+        } catch {
+            completion([])
+        }
+    }
     private  func detectFaceLandmarks(_ ciImage: CIImage, completion: @escaping (VNFaceObservation?) -> Void) {
         let request = VNDetectFaceLandmarksRequest { req, err in
             completion(req.results?.first as? VNFaceObservation)

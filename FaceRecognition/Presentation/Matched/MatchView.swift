@@ -19,35 +19,14 @@ struct MatchView: View {
                         Text("\(matchModel.matchPercent)")
                         
                         HStack{
-                            Image(uiImage: matchModel.from)
-                                .resizable()
-                                .interpolation(.high)   // ✅ moved up
-                                .scaledToFill()
-                                .frame( height: 180)
-                                .clipped()
-                                .overlay(
-                                    Rectangle()
-                                        .stroke(matchModel.isMatched ? Color.green : Color.blue, lineWidth: 4)
-                                        .shadow(color: matchModel.isMatched ? .green.opacity(0.6) : .blue.opacity(0.6), radius: 6)
-                                )
+                            LocalFileImageView(urlImage: (nil, matchModel.from, Color.green))
+                           
+                               
                             
                             Spacer()
                             if matchModel.to != nil{
-                                LocalFileImageView(url: matchModel.to!)
-                                /*
-                                Image(uiImage: matchModel.to!)
-                                    .resizable()
-                                    .interpolation(.high)   // ✅ moved up
-                                    .scaledToFill()
-                                    .frame(height: 180)
-                                    .clipped()
-                                    .overlay(
-                                        Rectangle()
-                                            .stroke( Color.blue, lineWidth: 4)
-                                            .shadow(color:  .blue.opacity(0.6), radius: 6)
-                                    )
-                                
-                                */
+                                LocalFileImageView(urlImage: (matchModel.to!, nil, Color.blue))
+                              
                             }
                         }
                     }

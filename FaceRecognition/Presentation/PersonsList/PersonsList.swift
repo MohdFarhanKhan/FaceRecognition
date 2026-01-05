@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct PersonsList: View {
-    @ObservedObject var faceViewModel = FaceViewModel()
+    @StateObject  var faceViewModel: FaceViewModel
+    //@ObservedObject var faceViewModel = FaceViewModel()
     @State var deleteProcess = false
     @Environment(\.dismiss) var dismiss
     var body: some View {
@@ -17,7 +18,7 @@ struct PersonsList: View {
                               .padding()
                       }
                     List {
-                        ForEach(faceViewModel.faces, id: \.id) { item in
+                        ForEach(AllStoredPersonsList.shared.faces, id: \.id) { item in
                             HStack {
                                 Text(item.name)
                                 Spacer()
@@ -31,7 +32,7 @@ struct PersonsList: View {
                             }
                         }
                     }
-                    .onChange(of: faceViewModel.faces) { old, new in
+                    .onChange(of: AllStoredPersonsList.shared.faces) { old, new in
                         deleteProcess.toggle()
                                    
                                }
@@ -48,5 +49,6 @@ struct PersonsList: View {
 }
 
 #Preview {
-    PersonsList()
+    PersonsList(faceViewModel: FaceViewModel(coreDataPersonRepository: CoreDataPersonRepository(coreDataManager: CoreDataManager.shared),  imageStorageManager: ImageStorageManager.shared))
+   // PersonsList()
 }

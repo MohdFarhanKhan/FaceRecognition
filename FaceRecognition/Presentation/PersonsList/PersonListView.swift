@@ -6,27 +6,34 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct PersonListView: View {
   
     @State private var showMoreFacesView = false
     @State var userId: UUID = UUID()
     @State var userName: String = ""
+    @StateObject  var viewModel: FaceViewModel
+    @StateObject var liveStoredPersonList = AllStoredPersonsList.shared
+   
     var body: some View {
-        if FaceViewModel.shared.isDeleting{
+        if viewModel.isDeleting{
             ProgressView("Deleting")
         }
         List {
-            ForEach(FaceViewModel.shared.faces) { person in
+            ForEach(liveStoredPersonList.faces) { person in
                     
                     NavigationLink {
-                        ImageGridView(person: person)
+                        ImageGridView(person: person, onDeleteUrl:{ id,url  in
+                            deleteImage(at: id, url: url)
+                        })
                         
                     } label: {
                         HStack{
                             Text(person.name)
                                 .font(.headline)
                                 .padding(.vertical, 8)
+                            Spacer()
                             Text("\(person.imageURLs.count)")
                                 .font(.headline)
                                 .padding(.vertical, 8)
@@ -45,8 +52,18 @@ struct PersonListView: View {
        }
     private func deletePerson(at offsets: IndexSet) {
         for index in offsets {
-            FaceViewModel.shared.deletePerson(personId: FaceViewModel.shared.faces[index].id)
+            viewModel.deletePerson(personId: AllStoredPersonsList.shared.faces[index].id)
+            break
             }
+       
+        }
+    
+    private func deleteImage(at id:UUID, url: URL ) {
+        if AllStoredPersonsList.shared.faces.first(where: { $0.id == id }) != nil {
+            viewModel.deleteImageEmbeding(of: id, imageURL: url)
+            //viewModel.deleteImage(at: url)
+        }
+       
        
         }
    
@@ -59,28 +76,74 @@ struct ImageGridView: View {
         GridItem(.flexible()),
         GridItem(.flexible())
     ]
-   
+    var onDeleteUrl: ((UUID, URL) -> Void)? = nil
     @State private var showMoreFacesView = false
-    @State var userId: UUID = UUID()
-    @State var userName: String = ""
+  
+    @State var urls: [URL]?
+    private func loadURLs(){
+      
+        for indx in person.imageURLs{
+            do{
+                 let url = try ImageStorageManager.shared.getImageURL(userId: person.id, index: indx)
+                if urls == nil{
+                    urls = [URL]()
+                }
+                urls?.append(url)
+            }
+            catch{
+                print(error.localizedDescription)
+            }
+           
+        }
+       
+//        urls = ImageStorageManager.shared.getImageURLs(userId: person.id)
 
+    }
+    private func deleteImage(at index: Int) {
+       
+            if onDeleteUrl != nil{
+                onDeleteUrl!(person.id,urls![index])
+            }
+          
+       
+        }
     var body: some View {
               ScrollView {
                 
                 LazyVGrid(columns: columns, spacing: 12) {
-                   
-                    ForEach(ImageStorageManager.shared.getImageURLs(userId: person.id), id: \.path) { url in
-                            LocalFileImageView(url: url)
-                        }
-                   
-//                    ForEach(FaceViewModel.shared.getImages(id: person.id)!, id: \.self) { img in
-//                      
-//                        Image(uiImage: img)
-//                                .resizable()
-//                                .scaledToFit()
-//                       
-//                        
-//                    }
+                    if let urlList = urls{
+                        
+                        ForEach(Array(zip(urlList, person.imageURLs)), id: \.0) { url, i in
+                            ZStack(alignment: .topTrailing){
+                                LocalFileImageView(urlImage: (url, nil, Color.blue))
+                                
+                                VStack(alignment: .trailing, spacing: 8) {
+                                    Button {
+                                        if let index = urls?.firstIndex(of: url) {
+                                            deleteImage(at: index)
+                                        }
+                                    } label: {
+                                        HStack{
+                                            Text("\(i) : ")
+                                                
+                                            Image(systemName: "trash.circle.fill")
+                                                .foregroundColor(.red)
+                                                .background(Color.white.clipShape(Circle()))
+                                        }
+                                    }
+                                }
+                                
+                                .padding(8)
+                                .background(
+                                    Color.white.opacity(0.50)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                
+                            }
+                            }
+                       
+                    }
+                 
                 }
                 .padding()
             }
@@ -88,8 +151,7 @@ struct ImageGridView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: {
-                    userId = person.id
-                    userName = person.name
+                 
                     showMoreFacesView = true
                    
                 }) {
@@ -108,53 +170,15 @@ struct ImageGridView: View {
                }
         }
         .navigationDestination(isPresented: $showMoreFacesView) {
-            MoreFacesRecordView(vm: MoreFacesViewModel(userName: userName, userId: userId))
+            MoreFacesRecordView(vm: MoreFacesViewModel(userName: person.name, userId: person.id, moreFacesUseCase: MoreFacesUseCase(faceEmbedingRepository: FaceEmbedingRepository( faceEmbeddingGenerator: FaceEmbeddingGenerator.shared), coreDataPersonRepository: CoreDataPersonRepository(coreDataManager: CoreDataManager.shared), imageStorageManager: ImageStorageManager.shared) ))
                 }
-    }
-}
-struct LocalFileImageView: View {
-    let url: URL
-    @State private var image: UIImage?
-
-    var body: some View {
-        Group {
-            if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .interpolation(.high)   // ✅ moved up
-                    .scaledToFill()
-                    .frame(height: 180)
-                    .clipped()
-                    .overlay(
-                        Rectangle()
-                            .stroke( Color.blue, lineWidth: 4)
-                            .shadow(color:  .blue.opacity(0.6), radius: 6)
-                    )
-                  
-                    
-            } else {
-                Color.gray.opacity(0.2)
-            }
-        }
         .onAppear {
-            loadImage()
-        }
-        .onDisappear {
-            image = nil // 🔥 release memory
+            loadURLs()
         }
     }
-
-    private func loadImage() {
-        
-        DispatchQueue.global(qos: .userInitiated).async {
-            print(url.path)
-            let img = UIImage(contentsOfFile: url.path)
-            DispatchQueue.main.async {
-                self.image = img
-            }
-        }
-    }
+       
 }
+
 #Preview {
-    PersonListView()
+    PersonListView(viewModel: FaceViewModel(coreDataPersonRepository: CoreDataPersonRepository(coreDataManager: CoreDataManager.shared),  imageStorageManager: ImageStorageManager.shared))
 }

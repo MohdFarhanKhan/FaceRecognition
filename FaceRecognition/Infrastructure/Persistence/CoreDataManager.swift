@@ -5,27 +5,63 @@
 //  Created by Mohd Khan on 19/11/25.
 //
 
-import Combine
 import CoreData
 import UIKit
+import Combine
 class CoreDataManager {
+    
     static let shared = CoreDataManager()
-    let persistentContainer: NSPersistentContainer
-
-    private init() {
+    var persistentContainer: NSPersistentContainer
+   
+    private   init() {
+       
         persistentContainer = NSPersistentContainer(name: "FaceRecognition")
+        let description = NSPersistentStoreDescription()
+
+        description.type = NSSQLiteStoreType
+        description.url = self.storeURL()
+        description.shouldMigrateStoreAutomatically = true
+        description.shouldInferMappingModelAutomatically = true
+
+        persistentContainer.persistentStoreDescriptions = [description]
+        
         persistentContainer.loadPersistentStores { _, error in
             if let error = error {
                 fatalError("Core Data load error: \(error)")
             }
             else{
-                self.toPerformAverage()
-            }
+                
+                self.persistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+               
+
+                self.persistentContainer.viewContext.automaticallyMergesChangesFromParent = true
+              
+                let fetchRequest: NSFetchRequest<Persons> = Persons.fetchRequest()
+                fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Persons.name, ascending: true)]
+                
+                //  self.toPerformAverage()
+                 }
         }
+        
     }
 
     var context: NSManagedObjectContext { persistentContainer.viewContext }
    
+    // MARK: - Store URL
+       private func storeURL() -> URL {
+           let storeName = "FaceRecognition.sqlite"
+           let directory = FileManager.default.urls(
+               for: .applicationSupportDirectory,
+               in: .userDomainMask
+           ).first!
+
+           try? FileManager.default.createDirectory(
+               at: directory,
+               withIntermediateDirectories: true
+           )
+
+           return directory.appendingPathComponent(storeName)
+       }
     // MARK: - Save / Delete / Fetch
     func toPerformAverage() {
         Task{
@@ -39,7 +75,6 @@ class CoreDataManager {
             self.persistentContainer.performBackgroundTask { context in
                 
                 let personCoreData = Persons(context: self.context)
-
                 personCoreData.id = person.id
                 personCoreData.name = person.name
                 personCoreData.embeding = person.embedings
@@ -79,8 +114,39 @@ class CoreDataManager {
         .receive(on: DispatchQueue.main)
         .eraseToAnyPublisher()
     }
-    func deletePerson(_ personId: UUID) -> AnyPublisher<Void, Error> {
+    func deleteEmbedingAndUrls(to personId: UUID, url: URL) -> AnyPublisher<Void, Error> {
       
+        Future { promise in
+            self.persistentContainer.performBackgroundTask { context in
+                do {
+                  
+                    let imageIndex = Int(url.lastPathComponent.dropLast(4) )
+                   let person = try self.fetchPerson(id: personId)
+                    if person.imageUrls != nil, person.imageUrls!.count > 0{
+                        var j = -1
+                        for i in 0..<person.imageUrls!.count{
+                            if person.imageUrls![i] == imageIndex{
+                                j = i
+                                break
+                            }
+                        }
+                        if j != -1{
+                            person.imageUrls?.remove(at: j)
+                            person.embeding?.remove(at: j)
+                            person.averageEmbeding = self.averageVector(from: person.embeding!)
+                            try self.context.save()
+                        }
+                    }
+                    promise(.success(()))
+                } catch {
+                    promise(.failure(error))
+                }
+            }
+        }
+        .receive(on: DispatchQueue.main)
+        .eraseToAnyPublisher()
+    }
+    func deletePerson(_ personId: UUID) -> AnyPublisher<Void, Error> {
         Future { promise in
             self.persistentContainer.performBackgroundTask { context in
                 do {
@@ -140,10 +206,8 @@ class CoreDataManager {
                     let results = try self.context.fetch(request)
                     var persons = [Person]()
                     for p in results{
-
-                        
-                        
-                        persons.append(Person(id: p.id!, name: p.name!, imageURLs: p.imageUrls!, embedings: p.embeding!, averageEmbedings: p.averageEmbeding!))
+                        persons.append(p.toDomain())
+//                        persons.append(Person(id: p.id!, name: p.name!, imageURLs: p.imageUrls!, embedings: p.embeding!, averageEmbedings: p.averageEmbeding!))
                     }
                     
                     promise(.success(persons))

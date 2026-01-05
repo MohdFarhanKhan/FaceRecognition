@@ -14,7 +14,7 @@ struct FaceCameraView: View {
       @State private var isCapturing = false
   
     @State private var moveToFaceCapture = false
-    @StateObject private var vm = FaceCameraViewModel()
+    @StateObject  var vm:  FaceCameraViewModel
     
     @State private var path = NavigationPath()
     
@@ -77,15 +77,27 @@ struct FaceCameraView: View {
                        }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: {
-                        
-                        path.append("faceCapture")
-                    }) {
-                        Image(systemName: "person.crop.circle.badge.plus")
-                            .foregroundColor(.black)
-                            .imageScale(.large)
-                           
+                    //camera.fill
+                    HStack{
+                        Button(action: {
+                            vm.cameraViewModel.changeCameraType()
+                        }) {
+                            Image(systemName: "camera.fill")
+                                .foregroundColor(.black)
+                                .imageScale(.large)
+                               
+                        }
+                        Button(action: {
+                            
+                            path.append("faceCapture")
+                        }) {
+                            Image(systemName: "person.crop.circle.badge.plus")
+                                .foregroundColor(.black)
+                                .imageScale(.large)
+                               
+                        }
                     }
+                    
                 }
                 ToolbarItem(placement: .topBarLeading) {
                     Button(action: {
@@ -105,26 +117,28 @@ struct FaceCameraView: View {
                    }
             }
             .navigationDestination(for: String.self) { value in
+               
                             if value == "faceCapture" {
-                              
-                                PersonFaceRecord( )
+                                PersonFaceRecord(vm: FaceCaptureViewModel(faceCaptureUseCase: FaceCaptureCameraUseCase(coreDataPersonRepository: CoreDataPersonRepository(coreDataManager: CoreDataManager.shared), faceEmbedingRepository: FaceEmbedingRepository( faceEmbeddingGenerator: FaceEmbeddingGenerator.shared), imageStorageManager: ImageStorageManager.shared)))
+                               
                             }
                else  if value == "personList" {
-                   PersonListView()
+                   PersonListView(viewModel: FaceViewModel( coreDataPersonRepository: CoreDataPersonRepository(coreDataManager: CoreDataManager.shared),  imageStorageManager: ImageStorageManager.shared))
+
                     //PersonsList()
                 }
                 else  if value == "matchView" {
                     MatchView()
                  }
-                //matchView
+               
                 
                         }
-           // .navigationTitle("Camera View")
+          
             .onAppear {
                 vm.configure()
                
                 moveToFaceCapture = false
-                if FaceViewModel.shared.faces.count <= 0{
+                if AllStoredPersonsList.shared.faces.count <= 0{
                     moveToFaceCapture = true
                 }
             }
@@ -141,5 +155,6 @@ struct FaceCameraView: View {
 
 
 #Preview {
-    FaceCameraView()
+    
+    FaceCameraView(vm: FaceCameraViewModel(faceCameraUseCase: FaceCameraUseCase(faceEmbedingRepository: FaceEmbedingRepository( faceEmbeddingGenerator: FaceEmbeddingGenerator.shared), imageStorageManager: ImageStorageManager.shared)  ))
 }

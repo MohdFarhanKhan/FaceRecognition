@@ -8,7 +8,8 @@ import SwiftUI
 
 struct PersonFaceRecord: View {
 
-    @StateObject private var vm = FaceCaptureViewModel()
+   // @StateObject private var vm = FaceCaptureViewModel()
+    @StateObject  var vm:  FaceCaptureViewModel
     @Environment(\.dismiss) var dismiss
    
     
@@ -110,5 +111,7 @@ struct PersonFaceRecord: View {
 }
 
 #Preview {
-    PersonFaceRecord()
+    PersonFaceRecord(vm: FaceCaptureViewModel(faceCaptureUseCase: FaceCaptureCameraUseCase(coreDataPersonRepository: CoreDataPersonRepository(coreDataManager: CoreDataManager.shared), faceEmbedingRepository: FaceEmbedingRepository( faceEmbeddingGenerator: FaceEmbeddingGenerator.shared), imageStorageManager: ImageStorageManager.shared)))
+    
+   
 }

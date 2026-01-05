@@ -19,19 +19,21 @@ protocol CameraDelegate: AnyObject {
    
 }
 
+
 final class CameraViewModel: NSObject{
    
      var isRunning: Bool = false
     var statusText: String = "Idle"
     weak var delegate: CameraDelegate?
-    let session = AVCaptureSession()
+    var session = AVCaptureSession()
+    //var session: AVCaptureSession?
     private let sessionQueue = DispatchQueue(label: "camera.session.queue")
     private var videoOutput: AVCaptureVideoDataOutput?
     private var videoConnection: AVCaptureConnection?
     private var ciContext = CIContext()
+  
     let previewView = PreviewView()
-    private let faceDetectionService = FaceDetectionService()
-    // Vision
+ 
     private let faceDetectionRequest = VNDetectFaceRectanglesRequest()
     private var processingFrame = false
 
@@ -61,7 +63,29 @@ final class CameraViewModel: NSObject{
             self.startSession()
         }
     }
+    func changeCameraType(){
+       
+        guard let currentInput = session.inputs.first(where: { ($0 as? AVCaptureDeviceInput)?.device.hasMediaType(.video) == true }) as? AVCaptureDeviceInput else {
+                return
+            }
 
+            let newPosition: AVCaptureDevice.Position = currentInput.device.position == .back ? .front : .back
+            guard let newDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: newPosition),
+                  let newInput = try? AVCaptureDeviceInput(device: newDevice) else {
+                return
+            }
+
+            session.beginConfiguration()
+            session.removeInput(currentInput)
+            if session.canAddInput(newInput) {
+                session.addInput(newInput)
+            } else {
+                // Fallback: re-add old input if needed
+                session.addInput(currentInput)
+            }
+            session.commitConfiguration()
+
+    }
     // MARK: Permissions & session setup
     private func checkPermissionAndConfigureSession() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -125,14 +149,15 @@ final class CameraViewModel: NSObject{
     }
 
     private func defaultCamera() -> AVCaptureDevice? {
-      
+       
             if let front = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
                 return front
             }
+       
             if let back = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
                 return back
             }
-       
+        
         
        
         return nil
@@ -200,7 +225,7 @@ extension CameraViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
                        from connection: AVCaptureConnection) {
         guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         var facesObs:  [VNFaceObservation]?
-        self.faceDetectionService.detectFaces(pixelBuffer: pixelBuffer, orientation: .leftMirrored) { obs in
+        self.cameraUtility.detectFaces(pixelBuffer: pixelBuffer, orientation: .leftMirrored) { obs in
             facesObs = obs
         }
         if facesObs?.count == 0{
@@ -224,7 +249,7 @@ extension CameraViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
                     let normalized = self.cameraUtility.normalizeLight(ciImage, brightness: brightness)
                     
                    
-                    
+                
                     guard let cgImage = self.ciContext.createCGImage(normalized, from: ciImage.extent) else {
                         self.processingFrame = false
                         print("cgImage nil")

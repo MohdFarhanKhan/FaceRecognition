@@ -14,7 +14,7 @@ struct FaceRecognitionApp: App {
     var body: some Scene {
         WindowGroup {
             AnimatedSplashView()
-              //  .environmentObject(container)
+              
         }
     }
 }

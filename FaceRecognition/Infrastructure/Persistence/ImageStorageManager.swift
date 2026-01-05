@@ -33,6 +33,14 @@ final class ImageStorageManager {
             includingPropertiesForKeys: nil
         )) ?? []
     }
+    func getImageCount(userId: UUID) -> Int {
+        let folder = baseDirectory.appendingPathComponent(userId.uuidString)
+        let urls = (try? FileManager.default.contentsOfDirectory(
+            at: folder,
+            includingPropertiesForKeys: nil
+        )) ?? []
+        return urls.count
+    }
     func getImageURL(userId: UUID, index: Int) throws ->  URL {
         let folder = try createUserFolder(userId: userId)
         return folder.appendingPathComponent("\(index).png")
@@ -43,12 +51,13 @@ extension ImageStorageManager {
 
     func createUserFolder(userId: UUID) throws -> URL {
         let userFolder = baseDirectory.appendingPathComponent(userId.uuidString)
-
-        if !fileManager.fileExists(atPath: userFolder.path) {
-            try fileManager.createDirectory(
-                at: userFolder,
-                withIntermediateDirectories: true
-            )
+        if getImageCount(userId: userId) <= 0{
+            if !fileManager.fileExists(atPath: userFolder.path) {
+                try fileManager.createDirectory(
+                    at: userFolder,
+                    withIntermediateDirectories: true
+                )
+            }
         }
         return userFolder
     }

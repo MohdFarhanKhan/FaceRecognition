@@ -13,10 +13,22 @@ import CoreImage
 
 class FaceEmbeddingGenerator {
     
-    
+    static let shared = FaceEmbeddingGenerator()
+    private let threshold: Float = 0.95
+   
+    func checkTwoEmbedings(firstEmbeding:[Float32], secondEmbeding:[Float32] )->Bool{
+        
+        let similarity = cosineSimilarity(firstEmbeding, secondEmbeding)
+       
+        return similarity >= 0.98
+    }
+    func checkTwoEmbedingsForSamePerson(firstEmbeding:[Float32], secondEmbeding:[Float32] )->Bool{
+        
+        let similarity = cosineSimilarity(firstEmbeding, secondEmbeding)
+       print("\(similarity)")
+        return similarity >= 0.92
+    }
     func generateEmbedding(from image: CGImage,  completion: @escaping([Float32]?) -> Void) {
-
-     
                
                  let request = VNGenerateImageFeaturePrintRequest()
                 let handler = VNImageRequestHandler(cgImage: image, orientation: .up, options: [:])
@@ -43,8 +55,8 @@ class FaceEmbeddingGenerator {
     func isSameImages(_ a: [Float32], _ b: [Float32]) -> (Bool, Float){
         let similarity = cosineSimilarity(a, b)
        
-        print("Similarity->\(similarity)")
-        return similarity >= 0.92 ? (true, similarity) : (false, similarity)
+       
+        return similarity >= threshold ? (true, similarity) : (false, similarity)
     }
   
     

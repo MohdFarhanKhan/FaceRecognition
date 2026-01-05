@@ -110,5 +110,7 @@ struct MoreFacesRecordView: View {
 }
 
 #Preview {
-    MoreFacesRecordView(vm: MoreFacesViewModel(userName: "Mohd Farhan Khan", userId: UUID()))
+  
+    
+    MoreFacesRecordView(vm: MoreFacesViewModel(userName: "Mohd Farhan Khan", userId: UUID(), moreFacesUseCase: MoreFacesUseCase(faceEmbedingRepository: FaceEmbedingRepository( faceEmbeddingGenerator: FaceEmbeddingGenerator.shared), coreDataPersonRepository: CoreDataPersonRepository(coreDataManager: CoreDataManager.shared), imageStorageManager: ImageStorageManager.shared) ))
 }
