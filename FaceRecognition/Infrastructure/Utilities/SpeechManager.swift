@@ -74,7 +74,7 @@ class SpeechManager: ObservableObject {
          }
      }
      textToSpeech = "\(greet), \(textToSpeech)"
-     print("Language:\(base),  Code: \(code)")
+     print("Language:\(base),  Code: \(code),  Text: \(textToSpeech), Greet")
      return code
  }
     func getMentionToAddMoreFaces(for text: String) -> String {

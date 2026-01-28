@@ -8,6 +8,8 @@
 import Foundation
 import Combine
 final class CoreDataPersonRepository: PersonRepository {
+   
+    
     private var cancellables = Set<AnyCancellable>()
 
     private let coreDataManager: CoreDataManager
@@ -15,10 +17,13 @@ final class CoreDataPersonRepository: PersonRepository {
     init(coreDataManager: CoreDataManager) {
         self.coreDataManager = coreDataManager
     }
+    func fetchAll() -> [Person]? {
+        coreDataManager.fetchAll()
+    }
     func toPerformAverage() {
         coreDataManager.toPerformAverage()
     }
-    //func deleteEmbedingAndUrls(to personId: UUID, url: URL) -> AnyPublisher<Void, Error>
+   
     func deleteEmbeding(of personId: UUID, url: URL, completion: @escaping (Bool) -> Void){
         coreDataManager.deleteEmbedingAndUrls(to: personId, url: url)
             .sink(receiveCompletion: {comp in

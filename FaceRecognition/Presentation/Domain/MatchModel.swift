@@ -11,7 +11,7 @@ import UIKit
 
 struct MatchModel: Identifiable, Equatable{
     let id = UUID() // Required for Identifiable
-    let from: UIImage
+    let from: Data
     let to: URL?
     let name: String
     let matchPercent: Float

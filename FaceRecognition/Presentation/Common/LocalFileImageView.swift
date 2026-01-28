@@ -12,7 +12,7 @@ struct LocalFileImageView: View {
    // let url: URL
     @State private var image: UIImage?
     //@State private var color: Color?
-
+    @State private var showingEnlargedImage = false
     var body: some View {
         Group {
             if let image {
@@ -27,6 +27,10 @@ struct LocalFileImageView: View {
                             .stroke( urlImage.2, lineWidth: 4)
                             .shadow(color:  .blue.opacity(0.6), radius: 6)
                     )
+                    .onLongPressGesture {
+                                        
+                                        showingEnlargedImage = true
+                                    }
                   
                     
             } else {
@@ -40,6 +44,9 @@ struct LocalFileImageView: View {
         .onDisappear {
             image = nil // 🔥 release memory
         }
+        .sheet(isPresented: $showingEnlargedImage) {
+            EnlargedImageView(image: Image(uiImage: image!) )
+                }
     }
 
     private func loadImage() {
@@ -57,6 +64,27 @@ struct LocalFileImageView: View {
                 }
             }
             
+        }
+    }
+}
+struct EnlargedImageView: View {
+    let image: Image
+    @Environment(\.dismiss) private var dismiss
+    
+    var body: some View {
+        NavigationStack {
+            image
+                .resizable()
+                .scaledToFit()
+                .ignoresSafeArea(edges: .bottom) // Fill the screen nicely
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("Close") {
+                            dismiss()
+                        }
+                    }
+                }
+                .navigationBarTitleDisplayMode(.inline)
         }
     }
 }

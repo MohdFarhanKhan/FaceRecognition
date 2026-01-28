@@ -41,9 +41,9 @@ class CameraUtility{
             let leftEye = face.landmarks?.leftEye,
             let rightEye = face.landmarks?.rightEye
         else { return 0 }
-
-        let width = image.extent.width
-        let height = image.extent.height
+        let extent = image.extent
+        let width = extent.width
+        let height = extent.height
 
         let left = leftEye.normalizedPoints.first!
         let right = rightEye.normalizedPoints.first!
@@ -65,8 +65,9 @@ class CameraUtility{
         return image.transformed(by: transform)
     }
     private func cropFace(_ image: CIImage, face: VNFaceObservation) -> CIImage {
-        let width = image.extent.width
-        let height = image.extent.height
+        let extent = image.extent
+        let width = extent.width
+        let height = extent.height
         
         let rect = CGRect(
             x: face.boundingBox.origin.x * width,
@@ -109,10 +110,10 @@ class CameraUtility{
                 }
                 
                 let box = face.boundingBox   // normalized rect
-                
+                let extent = ciImage.extent
                 // convert to image coordinates
-                let width = ciImage.extent.width
-                let height = ciImage.extent.height
+                let width = extent.width
+                let height = extent.height
                 
                 let rect = CGRect(
                     x: box.minX * width,
@@ -135,17 +136,25 @@ class CameraUtility{
         }
     
     func computeBrightness(_ image: CIImage) -> CGFloat {
-           
+        var extent = image.extent
+        if extent.isInfinite || extent.isEmpty {
+                // Fall back to autoAdjustExtent or define a reasonable bounds
+                if let cgImage = CIContext().createCGImage(image, from: image.extent) {
+                    extent = CGRect(x: 0, y: 0, width: cgImage.width, height: cgImage.height)
+                } else {
+                    return 0
+                }
+            }
         let extentVector = CIVector(
-              x: image.extent.origin.x,
-              y: image.extent.origin.y,
-              z: image.extent.size.width,
-              w: image.extent.size.height
+              x: extent.origin.x,
+              y: extent.origin.y,
+              z: extent.size.width,
+              w: extent.size.height
           )
 
           guard let filter = CIFilter(name: "CIAreaAverage") else { return 0 }
           filter.setValue(image, forKey: kCIInputImageKey)
-          filter.setValue(extentVector, forKey: "inputExtent")
+        filter.setValue(extentVector, forKey: kCIInputExtentKey)
 
           guard let output = filter.outputImage else { return 0 }
 
@@ -210,3 +219,5 @@ class CameraUtility{
         return nil
     }
 }
+
+

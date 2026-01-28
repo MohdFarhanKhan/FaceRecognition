@@ -7,6 +7,9 @@
 
 import SwiftUI
 import CoreData
+import WebKit
+import Combine
+
 
 struct PersonListView: View {
   
@@ -15,39 +18,42 @@ struct PersonListView: View {
     @State var userName: String = ""
     @StateObject  var viewModel: FaceViewModel
     @StateObject var liveStoredPersonList = AllStoredPersonsList.shared
-   
+      
     var body: some View {
-        if viewModel.isDeleting{
-            ProgressView("Deleting")
-        }
-        List {
-            ForEach(liveStoredPersonList.faces) { person in
-                    
-                    NavigationLink {
-                        ImageGridView(person: person, onDeleteUrl:{ id,url  in
-                            deleteImage(at: id, url: url)
-                        })
+       
+      
+                List {
+                   
+                    ForEach(liveStoredPersonList.faces) { person in
                         
-                    } label: {
-                        HStack{
-                            Text(person.name)
-                                .font(.headline)
-                                .padding(.vertical, 8)
-                            Spacer()
-                            Text("\(person.imageURLs.count)")
-                                .font(.headline)
-                                .padding(.vertical, 8)
+                        NavigationLink {
+                            ImageGridView(person: person, onDeleteUrl:{ id,url  in
+                                deleteImage(at: id, url: url)
+                            })
                             
+                        } label: {
+                            HStack{
+                                Text(person.name)
+                                    .font(.headline)
+                                    .padding(.vertical, 8)
+                                Spacer()
+                                Text("\(person.imageURLs.count)")
+                                    .font(.headline)
+                                    .padding(.vertical, 8)
+                                
+                            }
                         }
+                        
                     }
-                
-            }
-            .onDelete(perform: deletePerson)
-        }
+                    .onDelete(perform: deletePerson)
+                }
+            
         
-               .onAppear {
-                  
-               }
+                .onAppear {
+                    
+                }
+
+        
               
        }
     private func deletePerson(at offsets: IndexSet) {
@@ -68,6 +74,7 @@ struct PersonListView: View {
         }
    
 }
+
 struct ImageGridView: View {
     
     let person: Person

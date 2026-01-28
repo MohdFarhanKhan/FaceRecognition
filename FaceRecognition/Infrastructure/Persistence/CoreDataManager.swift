@@ -39,7 +39,7 @@ class CoreDataManager {
                 let fetchRequest: NSFetchRequest<Persons> = Persons.fetchRequest()
                 fetchRequest.sortDescriptors = [NSSortDescriptor(keyPath: \Persons.name, ascending: true)]
                 
-                //  self.toPerformAverage()
+                  self.toPerformAverage()
                  }
         }
         
@@ -63,6 +63,15 @@ class CoreDataManager {
            return directory.appendingPathComponent(storeName)
        }
     // MARK: - Save / Delete / Fetch
+    func fetchAll() -> [Person]?{
+        if let persons = fetchAllPersons(){
+           // originalArray.map { $0 * 2 }
+            let personsArray = persons.map{$0.toDomain()}
+            return personsArray
+        }
+        return nil
+        
+    }
     func toPerformAverage() {
         Task{
             try await self.updateAverageEmbeddingPersons()

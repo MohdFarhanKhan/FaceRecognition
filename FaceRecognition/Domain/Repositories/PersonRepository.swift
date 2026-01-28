@@ -9,6 +9,7 @@ import Foundation
 import Combine
 
 protocol PersonRepository {
+    func fetchAll() -> [Person]?
     func toPerformAverage()
     func deletePerson(_ personId: UUID, completion: @escaping (Bool) -> Void)
     func averageVector(from vectors: [[Float32]]) -> [Float32]?

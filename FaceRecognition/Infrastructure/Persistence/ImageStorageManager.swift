@@ -7,7 +7,7 @@
 
 import UIKit
 
-final class ImageStorageManager {
+ class ImageStorageManager {
 
     static let shared = ImageStorageManager()
     private init() {}

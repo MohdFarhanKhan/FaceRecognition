@@ -80,9 +80,9 @@ struct FaceCameraView: View {
                     //camera.fill
                     HStack{
                         Button(action: {
-                            vm.cameraViewModel.changeCameraType()
+                            vm.mailJSON()
                         }) {
-                            Image(systemName: "camera.fill")
+                            Image(systemName: "printer")
                                 .foregroundColor(.black)
                                 .imageScale(.large)
                                

@@ -19,8 +19,9 @@ struct MatchView: View {
                         Text("\(matchModel.matchPercent)")
                         
                         HStack{
-                            LocalFileImageView(urlImage: (nil, matchModel.from, Color.green))
-                           
+                            if let image = UIImage(data: matchModel.from){
+                                LocalFileImageView(urlImage: (nil, image, Color.green))
+                            }
                                
                             
                             Spacer()

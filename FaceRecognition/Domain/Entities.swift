@@ -8,7 +8,7 @@
 import Foundation
 
 
-struct Person: Identifiable, Equatable{
+struct Person: Identifiable, Equatable, Codable{
     let id: UUID
     let name: String
     let imageURLs: [Int]
@@ -17,3 +17,10 @@ struct Person: Identifiable, Equatable{
    
 }
 
+
+
+// Main model containing an array of image data
+struct IdImages: Codable {
+    let id: UUID
+    let images: [String] // Array of images in form of base64string
+}

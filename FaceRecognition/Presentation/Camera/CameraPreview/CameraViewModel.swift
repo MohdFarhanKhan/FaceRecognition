@@ -16,6 +16,7 @@ import CoreImage.CIFilterBuiltins
 protocol CameraDelegate: AnyObject {
     func saveFaceImage(_ cgImage: CGImage)
     func isCameraRunning(_ isRunning: Bool)
+    func selectedLightChange(_ lightMode: LightMode)
    
 }
 
@@ -31,7 +32,7 @@ final class CameraViewModel: NSObject{
     private var videoOutput: AVCaptureVideoDataOutput?
     private var videoConnection: AVCaptureConnection?
     private var ciContext = CIContext()
-  
+    var selectedLight: LightMode = .none
     let previewView = PreviewView()
  
     private let faceDetectionRequest = VNDetectFaceRectanglesRequest()
@@ -58,10 +59,35 @@ final class CameraViewModel: NSObject{
             sessionQueue.async {
                 self.checkPermissionAndConfigureSession()
             }
+            self.nextLightEffect()
         }
         else{
             self.startSession()
         }
+    }
+    func nextLightEffect() {
+        
+        DispatchQueue.main.async {
+            switch self.selectedLight{
+            case .none:
+                self.selectedLight = .soft
+            case .soft:
+                self.selectedLight = .bright
+            case .bright:
+                self.selectedLight = .left
+            case .left:
+                self.selectedLight = .right
+            case .right:
+                self.selectedLight = .top
+            case .top:
+                self.selectedLight = .ring
+            case .ring:
+                self.selectedLight = .none
+            }
+           
+            self.delegate?.selectedLightChange(self.selectedLight)
+        }
+       
     }
     func changeCameraType(){
        
@@ -151,6 +177,9 @@ final class CameraViewModel: NSObject{
     private func defaultCamera() -> AVCaptureDevice? {
        
             if let front = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
+                if front.isAdjustingFocus {
+                        print("⚠️ Camera still focusing")
+                    }
                 return front
             }
        
@@ -242,7 +271,7 @@ extension CameraViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
        
         cameraUtility.extractAlignedFace(from: sampleBuffer) { img in
             if let ciImage = img{
-              
+
                 self.cameraUtility.detectFaceAndBrightness(ciImage: ciImage) { faceRect, brightness in
                   
         
@@ -275,6 +304,7 @@ extension CameraViewModel: AVCaptureVideoDataOutputSampleBufferDelegate {
                                             self.previewView.updateFaces(facesObserve)
                                             if self.previewView.isAlign{
                                                 self.delegate?.saveFaceImage(faceCrop)
+                                                self.nextLightEffect()
                                             }
                                                     }
                                     }

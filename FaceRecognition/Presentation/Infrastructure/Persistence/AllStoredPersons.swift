@@ -15,11 +15,21 @@ final class  AllStoredPersonsList: ObservableObject {
     
     private var observer: PersonsFetchedResultsObserver
     private   init() {
+       
         observer = PersonsFetchedResultsObserver(context: CoreDataManager.shared.context)
         observer.onChange = { [weak self] persons in
             self?.faces = persons
         }
         observer.start()
+        
     }
-   
+    
+//    init(persons: [Person]){
+//        self.faces = persons
+//        observer = PersonsFetchedResultsObserver(context: CoreDataManager.shared.context)
+//        observer.onChange = { [weak self] persons in
+//            self?.faces = persons
+//        }
+//    }
+    
 }
